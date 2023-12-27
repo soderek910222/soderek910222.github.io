@@ -24,7 +24,7 @@ const board_url = document.referrer;
 
 // 取得人名, 要與 images 下的資料夾名稱相同 
 let labelStr = getCookie("labelStr");
-if (labelStr == "") labelStr = "Teddy,Chuan";
+if (labelStr == "") labelStr = "Sam";
 labelStr = prompt("請輸入名稱並以逗號隔開人名:", labelStr);
 let labels = labelStr.toString().split(",")
 
@@ -126,14 +126,17 @@ function loadLabel() {
     labels.map(async (label) => {
       console.log(label)
       const descriptions = []
-      for (let i = 1; i <= 3; i++) {
+      let imgFileName
+      for (let i = 1; i <= 6; i++) {
         try {
-          img = await faceapi.fetchImage(`images/${label}/${i}.jpg`)
+          imgFileName = `images/${label}/${i}.jpg`;
+          img = await faceapi.fetchImage(imgFileName)
         }
         catch (e) {
+          imgFileName = `images/${label}/${i}.png`;
           console.log("換PNG啦")
           try {
-            img = await faceapi.fetchImage(`images/${label}/${i}.png`)
+            img = await faceapi.fetchImage(imgFileName)
           }
           catch (err) {
             console.log("錯誤啊!!!")
@@ -143,7 +146,14 @@ function loadLabel() {
           }
         }
         const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
-        descriptions.push(detections.descriptor)
+        if (detections) {
+          console.log(imgFileName + " OK");
+          descriptions.push(detections.descriptor)
+        }
+        else {
+          console.log(imgFileName + " Error");
+          alert(`無法提取 ${imgFileName} 的人臉特徵, 請更換照片後再試試看！`)
+        }
       }
       labels_len--
       if (labels_len == 0) {
